@@ -21,11 +21,11 @@
 @property (nonatomic, strong, readonly) NSArray *artists;
 @property (nonatomic, strong, readonly) NSArray *albums;
 
+@property (nonatomic) BOOL includeUnplayable; // set to YES to include songs that cannot be played with DPMusicPlayer (either because they're protected or stored in the cloud, etc.)
 - (void)loadLibrary;
 
 
 - (DPMusicItemArtist*)artistForPersistentID:(NSNumber*)persistentID;
 - (DPMusicItemAlbum*)albumForPersistentID:(NSNumber*)persistentID;
-- (DPMusicItemSong*)songForPersistentID:(NSNumber*)persistentID;
 
 @end
