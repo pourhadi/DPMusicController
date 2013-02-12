@@ -89,18 +89,18 @@
 	if (sender == self.playButton) {
 		
 		if ([[DPMusicController sharedController] isPlaying]) {
-			[[DPMusicController sharedController] pause];
+			[[DPMusicController sharedController] pause:nil];
 		} else {
-			[[DPMusicController sharedController] play];
+			[[DPMusicController sharedController] play:nil];
 		}
 		
 	} else if (sender == self.backbutton) {
 		
-		[[DPMusicController sharedController] nextWithCrossfade:YES];
+		[[DPMusicController sharedController] nextWithCrossfade:YES error:nil];
 		
 	} else if (sender == self.nextButton) {
-		[[DPMusicController sharedController] previousWithCrossfade:YES];
-
+		[[DPMusicController sharedController] previousWithCrossfade:YES error:nil];
+		
 	}
 }
 

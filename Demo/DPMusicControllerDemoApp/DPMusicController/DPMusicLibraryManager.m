@@ -16,9 +16,9 @@
 
 @interface DPMusicLibraryManager ()
 {
-	BOOL songsLoaded;
-	BOOL artistsLoaded;
-	BOOL albumsLoaded;
+	BOOL _songsLoaded;
+	BOOL _artistsLoaded;
+	BOOL _albumsLoaded;
 }
 
 @end
@@ -36,13 +36,11 @@
 
 - (void)loadLibrary
 {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-		
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		MPMediaQuery *songsQuery = [MPMediaQuery songsQuery];
 		__block NSMutableArray *songsArray = [NSMutableArray arrayWithCapacity:songsQuery.itemSections.count];
 		
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
 		for (MPMediaQuerySection *section in songsQuery.itemSections) {
 			NSArray *subArray = [songsQuery.items objectsAtIndexes:[NSIndexSet indexSetWithIndexesInRange:section.range]];
 			NSMutableArray *convertedSubArray = [NSMutableArray arrayWithCapacity:subArray.count];
@@ -66,7 +64,8 @@
 		_songs = [NSArray arrayWithArray:songsArray];
 
 		dispatch_async(dispatch_get_main_queue(), ^{
-			songsLoaded = YES;
+			_songsLoaded = YES;
+			[[NSNotificationCenter defaultCenter] postNotificationName:kDPMusicNotificationLibraryLoaded object:nil];
 			[self sectionLoaded];
 		});
     });
@@ -98,7 +97,8 @@
 			
 			_artists = [NSArray arrayWithArray:artistsArray];
 			dispatch_async(dispatch_get_main_queue(), ^{
-				artistsLoaded = YES;
+				_artistsLoaded = YES;
+				[[NSNotificationCenter defaultCenter] postNotificationName:kDPMusicNotificationLibraryLoaded object:nil];
 				[self sectionLoaded];
 			});
 
@@ -128,23 +128,26 @@
 			
 			_albums = [NSArray arrayWithArray:albumsArray];
 			dispatch_async(dispatch_get_main_queue(), ^{
-				albumsLoaded = YES;
+				_albumsLoaded = YES;
+				[[NSNotificationCenter defaultCenter] postNotificationName:kDPMusicNotificationLibraryLoaded object:nil];
 				[self sectionLoaded];
 			});
 		});
-    });
+	  });
 }
 
 - (void)sectionLoaded
 {
-	if (artistsLoaded && albumsLoaded && songsLoaded) {
+	if (_artistsLoaded && _albumsLoaded && _songsLoaded) {
 		_listsLoaded = YES;
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:kDPMusicNotificationLibraryLoaded object:nil];
 		DLog(@"lists loaded");
         
         if (!self.includeUnplayable) {
-            [self cleanUpUnplayable];
+			dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+				[self cleanUpUnplayable];
+			});
         }
 	}
 }
@@ -178,7 +181,6 @@
 - (void)cleanUpUnplayable
 {
     __weak __typeof(&*self)weakSelf = self;
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
        
         NSMutableArray *newSongArray = [NSMutableArray arrayWithCapacity:weakSelf.songs.count];
         
@@ -198,7 +200,9 @@
         }
         
         _songs = newSongArray;
-        
+
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+
         NSMutableArray *newArtistArray = [NSMutableArray arrayWithCapacity:weakSelf.artists.count];
         
         for (DPMusicItemIndexSection *section in weakSelf.artists) {
@@ -222,7 +226,10 @@
         }
         
         _artists = newArtistArray;
-       
+	});
+	
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+
         NSMutableArray *newAlbumArray = [NSMutableArray arrayWithCapacity:weakSelf.albums.count];
         
         for (DPMusicItemIndexSection *section in weakSelf.albums) {
@@ -253,7 +260,6 @@
             
         });
 
-        
     });
 }
 

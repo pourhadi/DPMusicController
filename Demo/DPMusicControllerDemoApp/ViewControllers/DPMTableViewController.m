@@ -9,7 +9,9 @@
 #import "DPMTableViewController.h"
 
 @interface DPMTableViewController ()
-
+{
+	BOOL loaded;
+}
 
 @end
 
@@ -45,13 +47,15 @@
 {
 	switch (self.tableContentType) {
 		case DPMTableViewControllerContentTypeSongs:
+			loaded = [[[DPMusicController sharedController] libraryManager] songsLoaded];
 			self.items = [[DPMusicController sharedController] indexedSongs];
 			break;
 		case DPMTableViewControllerContentTypeArtists:
+			loaded = [[[DPMusicController sharedController] libraryManager] artistsLoaded];
 			self.items = [[DPMusicController sharedController] indexedArtists];
-			
 			break;
 		case DPMTableViewControllerContentTypeAlbums:
+			loaded = [[[DPMusicController sharedController] libraryManager] albumsLoaded];
 			self.items = [[DPMusicController sharedController] indexedAlbums];
 			
 			break;
@@ -100,7 +104,7 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {	
-	if (![[DPMusicController sharedController] libraryLoaded]) {
+	if (!loaded) {
 		return 0;
 	}
 	
@@ -113,7 +117,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-	if (![[DPMusicController sharedController] libraryLoaded]) {
+	if (!loaded) {
 		return 0;
 	}
 	
@@ -201,7 +205,7 @@
 	
 	if (self.tableContentType == DPMTableViewControllerContentTypeSongs) {
 
-		[[DPMusicController sharedController] setCurrentSong:(DPMusicItemSong*)selectedItem play:YES];
+		[[DPMusicController sharedController] setCurrentSong:(DPMusicItemSong*)selectedItem play:YES error:nil];
 		
 	} else if (self.tableContentType == DPMTableViewControllerContentTypeArtists) {
 		DPMTableViewController *controller = [[DPMTableViewController alloc] initWithStyle:UITableViewStylePlain];

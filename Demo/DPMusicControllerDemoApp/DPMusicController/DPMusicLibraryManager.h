@@ -15,6 +15,10 @@
 @interface DPMusicLibraryManager : NSObject
 
 @property (nonatomic, readonly) BOOL listsLoaded;
+@property (nonatomic, readonly) BOOL songsLoaded;
+@property (nonatomic, readonly) BOOL artistsLoaded;
+@property (nonatomic, readonly) BOOL albumsLoaded;
+
 
 // arrays of DPMusicItemIndexSections
 @property (nonatomic, strong, readonly) NSArray *songs;
