@@ -7,7 +7,6 @@
 //
 
 #import "DPMusicController.h"
-#import "DPMusicLibraryManager.h"
 #import "DPMusicPlayer.h"
 #import "DPMusicItem.h"
 
@@ -73,13 +72,13 @@
 	return song;
 }
 
-- (void)setCurrentSong:(DPMusicItemSong *)currentSong play:(BOOL)play
+- (void)setCurrentSong:(DPMusicItemSong *)currentSong play:(BOOL)play error:(NSError *__autoreleasing *)error
 {
 	NSMutableArray *mutablePlaylist = [self.playlist mutableCopy];
-
+	
 	if ([self.playlist containsObject:currentSong]) {
 		
-		NSUInteger index = [self indexOfSong:currentSong indexType:DPMusicIndexTypePlaylistIndex];
+		NSUInteger index = [self indexOfSong:currentSong indexType:DPMusicIndexTypePlaylistIndex error:nil];
 		
 		if (index < self.playhead) {
 			_playhead -= 1;
@@ -97,33 +96,33 @@
 	[self playlistChanged];
 }
 
-- (BOOL)play
+- (BOOL)play:(NSError *__autoreleasing *)error
 {
 	return [self.player play];
 }
 
-- (void)pause
+- (void)pause:(NSError *__autoreleasing *)error
 {
 	[self.player pause];
 }
 
-- (void)nextWithCrossfade:(BOOL)crossfade
+- (void)nextWithCrossfade:(BOOL)crossfade error:(NSError *__autoreleasing *)error
 {
 	
 }
-- (void)previousWithCrossfade:(BOOL)crossfade
+- (void)previousWithCrossfade:(BOOL)crossfade error:(NSError *__autoreleasing *)error
 {
 	
 }
 
-- (void)setPlaylist:(NSArray *)playlist withPlayheadAtIndex:(NSInteger)index play:(BOOL)play
+- (void)setPlaylist:(NSArray *)playlist withPlayheadAtIndex:(NSInteger)index play:(BOOL)play error:(NSError *__autoreleasing *)error
 {
 	_playlist = playlist;
-
-	[self setPlayhead:index play:play];
+	
+	[self setPlayhead:index play:play error:error];
 }
 
-- (void)setPlayhead:(NSInteger)playhead play:(BOOL)play
+- (void)setPlayhead:(NSInteger)playhead play:(BOOL)play error:(NSError *__autoreleasing *)error
 {
 	_playhead = playhead;
 	
@@ -131,9 +130,10 @@
 	[self playlistChanged];
 }
 
-- (BOOL)addSong:(DPMusicItemSong *)song
+- (BOOL)addSong:(DPMusicItemSong *)song error:(NSError *__autoreleasing *)error
 {
 	if ([self.playlist containsObject:song]) {
+		*error = [[NSError alloc] initWithDomain:kDPMusicErrorDomain code:101 userInfo:@{kDPMusicErrorDescriptionKey: [NSString stringWithFormat:@"The song you are trying to add ('%@') is already in the playlist.", song.title]}];
 		return NO;
 	}
 	
@@ -142,11 +142,11 @@
 	
 	_playlist = [mutablePlaylist copy];
 	[self playlistChanged];
-
+	
 	return YES;
 }
 
-- (BOOL)insertSong:(DPMusicItemSong *)song atIndex:(NSInteger)index indexType:(DPMusicIndexType)type
+- (BOOL)insertSong:(DPMusicItemSong *)song atIndex:(NSInteger)index indexType:(DPMusicIndexType)type error:(NSError *__autoreleasing *)error
 {
 	NSInteger newIndex = index;
 	NSMutableArray *mutablePlaylist = [self.playlist mutableCopy];
@@ -156,11 +156,13 @@
 	}
 	
 	if (newIndex > self.playlist.count) {
+		*error = [NSError errorWithDomain:kDPMusicErrorDomain code:100 userInfo:@{kDPMusicErrorDescriptionKey:[NSString stringWithFormat:@"Attempting to insert song (%@) at index %d is beyond the playlist bounds.", song.title, index]}];
+		
 		return NO;
 	}
 	
 	if ([self.playlist containsObject:song]) {
-		NSInteger currentIndex = [self indexOfSong:song indexType:DPMusicIndexTypePlaylistIndex];
+		NSInteger currentIndex = [self indexOfSong:song indexType:DPMusicIndexTypePlaylistIndex error:nil];
 		if (currentIndex < self.playhead) {
 			if (newIndex > self.playhead) {
 				_playhead -= 1;
@@ -181,17 +183,18 @@
 	[mutablePlaylist insertObject:song atIndex:newIndex];
 	_playlist = [mutablePlaylist copy];
 	[self playlistChanged];
-
+	
 	return YES;
 }
 
-- (BOOL)removeSong:(DPMusicItemSong *)song
+- (BOOL)removeSong:(DPMusicItemSong *)song error:(NSError *__autoreleasing *)error
 {
 	if (![self.playlist containsObject:song]) {
+		*error = [NSError errorWithDomain:kDPMusicErrorDomain code:102 userInfo:@{kDPMusicErrorDescriptionKey:[NSString stringWithFormat:@"The song you are trying to remove from the playlist (%@) is not in the playlist.", song.title]}];
 		return NO;
 	}
 	
-	NSInteger index = [self indexOfSong:song indexType:DPMusicIndexTypePlaylistIndex];
+	NSInteger index = [self indexOfSong:song indexType:DPMusicIndexTypePlaylistIndex error:error];
 	
 	if (index == self.playhead) {
 		return NO;
@@ -204,20 +207,20 @@
 	
 	_playlist = [mutablePlaylist copy];
 	[self playlistChanged];
-
+	
 	return YES;
 }
 
-- (BOOL)addSongCollection:(DPMusicItemCollection *)collection shuffle:(BOOL)shuffle
+- (BOOL)addSongCollection:(DPMusicItemCollection *)collection shuffle:(BOOL)shuffle error:(NSError *__autoreleasing *)error
 {
 	NSMutableArray *mutablePlaylist = [self.playlist copy];
-
+	
 	for (DPMusicItemSong *song in collection.songs) {
 		if ([self.playlist containsObject:song]) {
 			
-			NSInteger currentIndex = [self indexOfSong:song indexType:DPMusicIndexTypePlaylistIndex];
+			NSInteger currentIndex = [self indexOfSong:song indexType:DPMusicIndexTypePlaylistIndex error:nil];
 			if (currentIndex < self.playhead) {
-					_playhead -= 1;
+				_playhead -= 1;
 			} else if (currentIndex == self.playhead) {
 				return NO;
 			}
@@ -229,11 +232,11 @@
 	
 	_playlist = [mutablePlaylist copy];
 	[self playlistChanged];
-
+	
 	return YES;
 }
 
-- (BOOL)insertSongCollection:(DPMusicItemCollection*)collection atIndex:(NSInteger)index indexType:(DPMusicIndexType)type
+- (BOOL)insertSongCollection:(DPMusicItemCollection*)collection atIndex:(NSInteger)index indexType:(DPMusicIndexType)type error:(NSError *__autoreleasing *)error
 {
 	NSInteger newIndex = index;
 	NSMutableArray *mutablePlaylist = [self.playlist mutableCopy];
@@ -247,7 +250,7 @@
 	}
 	for (DPMusicItemSong *song in collection.songs) {
 		if ([self.playlist containsObject:song]) {
-			NSInteger currentIndex = [self indexOfSong:song indexType:DPMusicIndexTypePlaylistIndex];
+			NSInteger currentIndex = [self indexOfSong:song indexType:DPMusicIndexTypePlaylistIndex error:nil];
 			if (currentIndex < self.playhead) {
 				if (newIndex > self.playhead) {
 					_playhead -= 1;
@@ -269,11 +272,11 @@
 	}
 	_playlist = [mutablePlaylist copy];
 	[self playlistChanged];
-
+	
 	return YES;
 }
 
-- (NSInteger)indexOfSong:(DPMusicItemSong*)song indexType:(DPMusicIndexType)type
+- (NSInteger)indexOfSong:(DPMusicItemSong*)song indexType:(DPMusicIndexType)type error:(NSError *__autoreleasing *)error
 {
 	__block NSInteger index;
 	
@@ -321,7 +324,7 @@
 	return newIndex;
 }
 
-- (void)shufflePlaylist:(BOOL)unplayedSongsOnly
+- (void)shufflePlaylist:(BOOL)unplayedSongsOnly error:(NSError *__autoreleasing *)error
 {
 	NSArray *songsToShuffle;
 	DPMusicItemSong *playingSong;
@@ -363,7 +366,7 @@
 	return [NSArray arrayWithArray:tmpArray];  // non-mutable autoreleased copy
 }
 
-- (void)clearPlaylist
+- (void)clearPlaylist:(NSError *__autoreleasing *)error
 {
 	NSArray *newPlaylist;
 	if (self.isPlaying) {
@@ -392,9 +395,15 @@
 	if (!_player)
 	{
 		_player = [[DPMusicPlayer alloc] init];
+		_player.delegate = self;
 		[_player registerObjectToReceiveTrackPositionKVO:self];
 	}
 	return _player;
+}
+
+-(void)playbackDidFinish
+{
+	[self nextWithCrossfade:NO error:nil];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
@@ -436,7 +445,7 @@
 	int minutes = currentTimeSec / 60;
 	int seconds = (currentTimeSec % 60);
 	NSString *elapsed = [NSString stringWithFormat: @"%02d:%02d", minutes, seconds];
-
+	
 	return elapsed;
 }
 
@@ -531,11 +540,11 @@ static CGFloat fadeOutVol;
 		float denom = inDur / 0.1;
 		
 		float step = inVol / denom;
-
+		
 		fadeInTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(fadeUpWithStep:) userInfo:[NSNumber numberWithFloat:step] repeats:YES];
-	
+		
 	}
-
+	
 }
 -(void)fadeDownWithStep:(NSTimer*)timer
 {
@@ -545,7 +554,7 @@ static CGFloat fadeOutVol;
 	if (self.player && self.player.volume > fadeOutVol && fadingOut)
 	{
 		self.player.volume -= [step floatValue];
-
+		
 	}
 	else
 	{
@@ -567,64 +576,57 @@ static CGFloat fadeOutVol;
 	if (self.crossfadePlayer && self.crossfadePlayer.volume < 1 && fadingIn)
 	{
 		self.crossfadePlayer.volume += [step floatValue];
-
+		
 	}
 }
 
 -(void)beginCrossfade
 {
 	fadingOut = YES;
-				
+	
 	[self performBackgroundFadeForPlayer:self.player];
-
+	
 }
 -(void)beginFadeInToSong:(DPMusicItemSong*)song
 {
-
-		fadingIn = YES;
-		fadingOut = YES;
+	
+	fadingIn = YES;
+	fadingOut = YES;
+	
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[[NSNotificationCenter defaultCenter] postNotificationName:kDPMusicNotificationCrossfadeBegan object:nil];
+	});
+	
+	if (self.crossfadePlayer)
+		self.crossfadePlayer = nil;
+	
+	
+	self.crossfadePlayer = [[DPMusicPlayer alloc] init];
+	
+	NSTimeInterval startTime = 0;
+	
+	[self.crossfadePlayer seekToTime:startTime];
+	float inVol = self.fadeInFromVolume;
+	[self.crossfadePlayer setVolume:inVol];
+	[self.crossfadePlayer play];
+	
+	dispatch_async(dispatch_get_main_queue(), ^{
 		
-		dispatch_async(dispatch_get_main_queue(), ^{
-			// crossfade begins
-		});
-
-		if (self.crossfadePlayer)
-			self.crossfadePlayer = nil;
+		[self performBackgroundFadeForPlayer:self.crossfadePlayer];
 		
-		
-		self.crossfadePlayer = [[DPMusicPlayer alloc] init];
-		
-		NSTimeInterval startTime = 0;
-		
-		[self.crossfadePlayer seekToTime:startTime];
-		float inVol = [[[NSUserDefaults standardUserDefaults] objectForKey:@"fadeInFromVolume"] floatValue];
-		[self.crossfadePlayer setVolume:inVol];
-		[self.crossfadePlayer play];
-		
-		dispatch_async(dispatch_get_main_queue(), ^{
-			
-			[self performBackgroundFadeForPlayer:self.crossfadePlayer];
-			
-		});
+	});
 	
 }
 -(void)endCrossfade
 {
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"EndCrossfade" object:nil];
 	
 	dispatch_async(dispatch_get_main_queue(), ^{
-		// playlist changed
-		
-	});
-	
-	dispatch_async(dispatch_get_main_queue(), ^{
-		
-		// crossfade ended
+		[[NSNotificationCenter defaultCenter] postNotificationName:kDPMusicNotificationCrossfadeEnded object:nil];
 	});
 	
 	if (self.player)
 	{
-
+		
 		[self.player teardownCoreAudio];
 		_player = nil;
 		
@@ -632,14 +634,14 @@ static CGFloat fadeOutVol;
 		self.crossfadePlayer = nil;
 		
 		self.player.delegate = self;
-
+		
 		fadingIn = NO;
 		fadingOut = NO;
-
+		
 	}
 	[self playlistChanged];
-
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"NowPlayingChanged" object:nil];
+	[[NSNotificationCenter defaultCenter] postNotificationName:kDPMusicNotificationNowPlayingChanged object:nil];
+	
 }
 
 
