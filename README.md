@@ -12,7 +12,7 @@ DPMusicController is basically an all-in-one tool for browsing your music librar
 
 Important note
 ------------
-This is still a work in process. I put it on GitHub so I have a central place to store it -- but right now, some functions may not be finished, some notifications may not be sent out, etc.
+This is still a work in progress. I put it on GitHub so I have a central place to store it -- but right now, some functions may not be finished, some notifications may not be sent out, etc.
 
 Please feel free to install it and play with it, but be aware it's incomplete and probably buggy.
 
