@@ -1111,6 +1111,9 @@ static BOOL wasPlayingBeforeSeek = NO;
 - (void)endSeek
 {
 	_seeking = NO;
+    
+    audioStructs[mainBus].bufferIsReady = YES;
+	audioStructs[mainBus].playingiPod = YES;
 }
 
 
@@ -1121,7 +1124,9 @@ static BOOL wasPlayingBeforeSeek = NO;
 -(void)seekToTime:(NSTimeInterval)time
 {
 	audioStructs[mainBus].currentSampleNum = time * SInt16StereoStreamFormat.mSampleRate;
+    [self willChangeValueForKey:@"trackPosition"];
 	_trackPosition = time;
+    [self didChangeValueForKey:@"trackPosition"];
 	[self.delegate musicPlayer:self didOutputAudioOfDuration:_trackPosition];
 	
 	audioStructs[mainBus].playingiPod = NO;
