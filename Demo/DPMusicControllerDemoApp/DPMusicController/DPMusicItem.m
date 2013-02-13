@@ -24,7 +24,7 @@
 	return nil;
 }
 
-- (BOOL)equals:(DPMusicItem*)otherObj
+- (BOOL)isEqual:(DPMusicItem*)otherObj
 {
 	return self.persistentID.unsignedLongLongValue == otherObj.persistentID.unsignedLongLongValue;
 }

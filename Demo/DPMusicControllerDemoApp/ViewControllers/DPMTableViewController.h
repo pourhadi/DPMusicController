@@ -14,6 +14,7 @@ typedef NS_ENUM(NSUInteger, DPMTableViewControllerContentType) {
 	DPMTableViewControllerContentTypeArtists,
 	DPMTableViewControllerContentTypeAlbums,
 	DPMTableViewControllerContentTypeDrillDown,
+    DPMTableViewControllerContentTypePlaylist,
 };
 
 @interface DPMTableViewController : UITableViewController

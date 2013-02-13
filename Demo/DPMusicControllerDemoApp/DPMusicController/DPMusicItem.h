@@ -26,7 +26,7 @@
 
 - (UIImage*)getRepresentativeImageForSize:(CGSize)size;
 
-- (BOOL)equals:(id)otherObj;
+- (BOOL)isEqual:(id)otherObj;
 
 @end
 
