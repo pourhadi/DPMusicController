@@ -401,6 +401,13 @@
 	return _player;
 }
 
+- (void)setTrackPosition:(NSTimeInterval)trackPosition
+{
+    [self willChangeValueForKey:@"trackPosition"];
+	_trackPosition = trackPosition;
+	[self didChangeValueForKey:@"trackPosition"];
+}
+
 -(void)playbackDidFinish
 {
 	[self nextWithCrossfade:NO error:nil];
@@ -408,9 +415,7 @@
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
-	[self willChangeValueForKey:@"trackPosition"];
-	_trackPosition = self.player.trackPosition;
-	[self didChangeValueForKey:@"trackPosition"];
+    [self setTrackPosition:self.player.trackPosition];
 }
 
 - (BOOL)isPlaying

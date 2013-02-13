@@ -34,7 +34,7 @@
 		self.tableTitle = @"";
 	}
 
-	NSArray *titleArray = @[@"Songs", @"Artists", @"Albums", self.tableTitle];
+	NSArray *titleArray = @[@"Songs", @"Artists", @"Albums", self.tableTitle, @"Playlist"];
 	
 	self.title = [titleArray objectAtIndex:self.tableContentType];
 	
@@ -62,6 +62,10 @@
 		case DPMTableViewControllerContentTypeDrillDown:
 	
 			break;
+        case DPMTableViewControllerContentTypePlaylist:
+            loaded = ([[DPMusicController sharedController] playlist].count > 0);
+            self.items = [[DPMusicController sharedController] playlist];
+            break;
 		default:
 			break;
 	}
@@ -78,7 +82,7 @@
 #pragma mark - Table view data source
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-	if (self.tableContentType == DPMTableViewControllerContentTypeDrillDown) {
+	if (self.tableContentType & DPMTableViewControllerContentTypeDrillDown || self.tableContentType & DPMTableViewControllerContentTypePlaylist) {
 		return @"";
 	}
 	
@@ -88,7 +92,7 @@
 
 - (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
 {
-	if (self.tableContentType == DPMTableViewControllerContentTypeDrillDown) {
+	if (self.tableContentType & DPMTableViewControllerContentTypeDrillDown || self.tableContentType & DPMTableViewControllerContentTypePlaylist) {
 		return nil;
 	}
 	return [self valueForKeyPath:@"items.indexTitle"];
@@ -96,7 +100,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView sectionForSectionIndexTitle:(NSString *)title atIndex:(NSInteger)index
 {
-	if (self.tableContentType == DPMTableViewControllerContentTypeDrillDown) {
+	if (self.tableContentType & DPMTableViewControllerContentTypeDrillDown || self.tableContentType & DPMTableViewControllerContentTypePlaylist) {
 		return 0;
 	}
 	return index;
@@ -108,7 +112,7 @@
 		return 0;
 	}
 	
-	if (self.tableContentType == DPMTableViewControllerContentTypeDrillDown) {
+	if (self.tableContentType & DPMTableViewControllerContentTypeDrillDown || self.tableContentType & DPMTableViewControllerContentTypePlaylist) {
 		return 1;
 	}
     
@@ -121,7 +125,7 @@
 		return 0;
 	}
 	
-	if (self.tableContentType == DPMTableViewControllerContentTypeDrillDown) {
+	if (self.tableContentType & DPMTableViewControllerContentTypeDrillDown || self.tableContentType & DPMTableViewControllerContentTypePlaylist) {
 		return self.items.count;
 	}
 	
@@ -140,7 +144,7 @@
 
 	DPMusicItem *item;
 	
-	if (self.tableContentType == DPMTableViewControllerContentTypeDrillDown) {
+	if (self.tableContentType & DPMTableViewControllerContentTypeDrillDown || self.tableContentType & DPMTableViewControllerContentTypePlaylist) {
 		item = self.items[indexPath.row];
 	} else {
 		DPMusicItemIndexSection *indexSection = self.items[indexPath.section];
