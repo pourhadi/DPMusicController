@@ -118,8 +118,13 @@ static OSStatus ipodRenderCallback (
 
 -(void)setVolume:(Float64)volume
 {
-	_volume = volume;
-	[self setMixerOutputGain:volume];
+	[self setMixerInput:mainBus gain:volume];
+	//[self setMixerOutputGain:volume];
+}
+
+- (Float64)volume
+{
+	return [self getInputGainForBus:mainBus];
 }
 
 /*
@@ -1060,13 +1065,6 @@ static char *FormatError(char *str, OSStatus error)
 	return gain;
 }
 
-- (void)feedPlayer:(BOOL)feed
-{
-    audioStructs[mainBus].bufferIsReady = feed;
-	audioStructs[mainBus].playingiPod = feed;
-
-}
-
 #pragma mark - seeking
 
 static BOOL wasPlayingBeforeSeek = NO;
@@ -1103,7 +1101,6 @@ static BOOL wasPlayingBeforeSeek = NO;
 {
 	audioStructs[mainBus].currentSampleNum = time * SInt16StereoStreamFormat.mSampleRate;
     [self setTrackPosition:time];
-	[self.delegate musicPlayer:self didOutputAudioOfDuration:_trackPosition];
 	
 	[self feedPlayer:NO];
 	

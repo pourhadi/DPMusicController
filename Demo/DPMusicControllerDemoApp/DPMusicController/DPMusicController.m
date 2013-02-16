@@ -647,10 +647,9 @@ static CGFloat fadeOutVol;
 }
 -(void)fadeDownWithStep:(NSTimer*)timer
 {
-	
 	NSNumber *step = [timer userInfo];
 	
-	if (self.player && self.player.volume > fadeOutVol && fadingOut)
+	if (self.player && self.player.volume > self.fadeOutToVolume && fadingOut)
 	{
 		self.player.volume -= [step floatValue];
 		
@@ -669,7 +668,6 @@ static CGFloat fadeOutVol;
 }
 -(void)fadeUpWithStep:(NSTimer*)timer
 {
-	
 	NSNumber *step = [timer userInfo];
 	
 	if (self.crossfadePlayer && self.crossfadePlayer.volume < 1 && fadingIn)
@@ -688,7 +686,6 @@ static CGFloat fadeOutVol;
 }
 -(void)beginFadeInToSong:(DPMusicItemSong*)song
 {
-	
 	fadingIn = YES;
 	fadingOut = YES;
 	
@@ -707,10 +704,7 @@ static CGFloat fadeOutVol;
 	NSTimeInterval startTime = 0;
 	
 	[self.crossfadePlayer seekToTime:startTime];
-	//float inVol = self.fadeInFromVolume;
-	//[self.crossfadePlayer setVolume:inVol];
-	//[self.crossfadePlayer play];
-	
+
 	dispatch_async(dispatch_get_main_queue(), ^{
 		
 		[self performBackgroundFadeForPlayer:self.crossfadePlayer];
