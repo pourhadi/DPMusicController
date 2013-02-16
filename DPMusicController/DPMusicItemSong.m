@@ -11,16 +11,6 @@
 #import "DPMusicItemAlbum.h"
 #import "DPMusicLibraryManager.h"
 @interface DPMusicItemSong ()
-{
-//	DPMusicItemArtist *_artist;
-//	DPMusicItemAlbum *_album;
-//	NSNumber *_persistentID;
-//	MPMediaItem *_associatedItem;
-//	NSTimeInterval _duration;
-//	NSNumber *_artistPersistentID;
-//	NSNumber *_albumPersistentID;
-
-}
 
 @end
 

@@ -60,6 +60,5 @@ typedef struct {
 
 @protocol DPMusicPlayerDelegate <NSObject>
 
--(void)musicPlayer:(DPMusicPlayer *)player didOutputAudioOfDuration:(NSTimeInterval)audioDuration;
 -(void)playbackDidFinish;
 @end
