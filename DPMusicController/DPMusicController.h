@@ -13,7 +13,7 @@
 #import "DPMusicItemSong.h"
 #import "DPMusicItemArtist.h"
 #import "DPMusicItemAlbum.h"
-
+#import "DPMusicLibraryManager.h"
 @class DPMusicLibraryManager;
 
 
@@ -53,34 +53,34 @@ typedef NS_ENUM(NSUInteger, DPMusicIndexType) {
 //****
 
 - (DPMusicItemSong*)currentSong;
-- (void)setCurrentSong:(DPMusicItemSong *)currentSong play:(BOOL)play;
+- (void)setCurrentSong:(DPMusicItemSong *)currentSong play:(BOOL)play error:(NSError**)error;
 
 @property (nonatomic, readonly) BOOL isPlaying;
 
-- (BOOL)play;
-- (void)pause;
+- (BOOL)play:(NSError**)error;
+- (void)pause:(NSError**)error;
 
-- (void)nextWithCrossfade:(BOOL)crossfade;
-- (void)previousWithCrossfade:(BOOL)crossfade;
+- (void)nextWithCrossfade:(BOOL)crossfade error:(NSError**)error;
+- (void)previousWithCrossfade:(BOOL)crossfade error:(NSError**)error;
 
 @property (nonatomic, readonly, strong) NSArray *playlist; // the current queue / playlist, an array of DPMusicItems
-- (void)setPlaylist:(NSArray *)playlist withPlayheadAtIndex:(NSInteger)index play:(BOOL)play;
+- (void)setPlaylist:(NSArray *)playlist withPlayheadAtIndex:(NSInteger)index play:(BOOL)play error:(NSError**)error;
 
 // the playhead represents the index of the currently-playing song in the playlist array
 @property (nonatomic, readonly) NSInteger playhead;
-- (void)setPlayhead:(NSInteger)playhead play:(BOOL)play;
+- (void)setPlayhead:(NSInteger)playhead play:(BOOL)play error:(NSError**)error;
 
-- (BOOL)addSong:(DPMusicItemSong*)song; // adds to end of the playlist; returns NO if song already exists in playlist
-- (BOOL)insertSong:(DPMusicItemSong*)song atIndex:(NSInteger)index indexType:(DPMusicIndexType)type; // returns NO if index is beyond playlist bounds or if trying to insert song at playhead (use setCurrentSong:play: instead)
-- (BOOL)removeSong:(DPMusicItemSong*)song; // returns NO if song isn't in playlist of it song is currentSong
+- (BOOL)addSong:(DPMusicItemSong*)song error:(NSError**)error; // adds to end of the playlist; returns NO if song already exists in playlist
+- (BOOL)insertSong:(DPMusicItemSong*)song atIndex:(NSInteger)index indexType:(DPMusicIndexType)type error:(NSError**)error; // returns NO if index is beyond playlist bounds or if trying to insert song at playhead (use setCurrentSong:play: instead)
+- (BOOL)removeSong:(DPMusicItemSong*)song error:(NSError**)error; // returns NO if song isn't in playlist of it song is currentSong
 
-- (BOOL)addSongCollection:(DPMusicItemCollection*)collection;
-- (BOOL)insertSongCollection:(DPMusicItemCollection*)collection atIndex:(NSInteger)index indexType:(DPMusicIndexType)type;
+- (BOOL)addSongCollection:(DPMusicItemCollection*)collection error:(NSError**)error;
+- (BOOL)insertSongCollection:(DPMusicItemCollection*)collection atIndex:(NSInteger)index indexType:(DPMusicIndexType)type error:(NSError**)error;
 
-- (NSInteger)indexOfSong:(DPMusicItemSong*)song indexType:(DPMusicIndexType)type;
+- (NSInteger)indexOfSong:(DPMusicItemSong*)song indexType:(DPMusicIndexType)type error:(NSError**)error;
 
-- (void)shufflePlaylist:(BOOL)unplayedSongsOnly;
-- (void)clearPlaylist;
+- (void)shufflePlaylist:(BOOL)unplayedSongsOnly error:(NSError**)error;
+- (void)clearPlaylist:(NSError**)error;
 
 //*****
 //

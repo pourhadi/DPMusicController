@@ -12,6 +12,7 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <AVFoundation/AVFoundation.h>
 #import <CoreMedia/CoreMedia.h>
+#import "DPMusicConstants.h"
 #define kUnitSize sizeof(AudioUnitSampleType)
 #define kBufferUnit 655360
 #define kTotalBufferSize kBufferUnit * kUnitSize
@@ -70,39 +71,6 @@ static OSStatus ipodRenderCallback (
 	UInt32 framesSinceLastTimeUpdate;
 	BOOL fadingIn;
 	BOOL fadingOut;
-
-	/*
-	 AudioStruct currentSongStruct;
-	 
-	 
-	 
-	 
-	 float currentVolume;
-	 
-	 BOOL fadingOut;
-	 BOOL fadingIn;
-	 
-	 float fadeOutVol;
-	 
-	 
-	 
-	 //AudioObject *songObjects[2];
-	 
-	 AudioStruct audioStructs[2];
-	 
-	 
-	 
-	 
-	 NSURL *url;
-	 
-	 NSMutableArray *notes;
-	 BOOL playingBeforeInterruption;
-	 
-	 NSNumber *duration;
-	 
-	 BOOL isSpotifyTrack;
-	 
-	 */
 	
 	NSTimeInterval _duration;
 	NSTimeInterval _trackPosition;
@@ -137,7 +105,7 @@ static OSStatus ipodRenderCallback (
 	_duration = self.song.duration;
 	[[NSNotificationCenter defaultCenter] postNotificationName:@"DurationChanged" object:nil];
 	
-	_trackPosition = 0;
+	[self setTrackPosition:0];
 	audio->currentSampleNum = 0;
 	[self loadBufferAtStartTime:0 reset:YES];
 	
@@ -204,7 +172,7 @@ static OSStatus ipodRenderCallback (
 -(void)reset
 {
 	_song = nil;
-	_trackPosition = 0;
+	[self setTrackPosition:0];
 	audioStructs[mainBus].currentSampleNum = 0;
 	
 }
@@ -222,7 +190,7 @@ static OSStatus ipodRenderCallback (
 		mainBus = 0;
 		auxBus = 1;
 		
-		_trackPosition = 0;
+		[self setTrackPosition:0];
 		
 		[self setupAudioSession];
 		[self setupSInt16StereoStreamFormat];
@@ -243,9 +211,7 @@ static OSStatus ipodRenderCallback (
 
 - (void)incrementTrackPosition
 {
-	[self willChangeValueForKey:@"trackPosition"];
-	_trackPosition = audioStructs[mainBus].currentSampleNum / SInt16StereoStreamFormat.mSampleRate;
-	[self didChangeValueForKey:@"trackPosition"];
+	[self setTrackPosition:audioStructs[mainBus].currentSampleNum / SInt16StereoStreamFormat.mSampleRate];
 }
 
 -(void)cleanUpBufferForBus:(UInt32)bus
@@ -506,7 +472,7 @@ static OSStatus ipodRenderCallback (
 				[self stopAUGraph];
 			}
 			
-			[[NSNotificationCenter defaultCenter] postNotificationName:@"Pause" object:self];
+			//[[NSNotificationCenter defaultCenter] postNotificationName:@"Pause" object:self];
 			_playing = NO;
 			
 		}
@@ -520,7 +486,7 @@ static OSStatus ipodRenderCallback (
 				{
 					[self startAUGraph];
 					wasPlayingBeforeSeek = NO;
-					[[NSNotificationCenter defaultCenter] postNotificationName:@"Play" object:self];
+				//	[[NSNotificationCenter defaultCenter] postNotificationName:@"Play" object:self];
 					
 				}
 			}
@@ -970,7 +936,7 @@ static char *FormatError(char *str, OSStatus error)
 		if (noErr != result) {[self printErrorMessage: @"AUGraphStart" withStatus: result]; return;}
 		
 		_playing = YES;
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"Play" object:nil];
+		[[NSNotificationCenter defaultCenter] postNotificationName:kDPMusicNotificationPlayStateChanged object:nil userInfo:@{kDPMusicNotificationPlayStateKey:kDPMusicNotificationPlayStatePlay}];
 		
 	}
 }
@@ -991,7 +957,7 @@ static char *FormatError(char *str, OSStatus error)
 			AUGraphIsRunning(processingGraph, &isRunning);
 		}
 
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"Pause" object:nil];
+		[[NSNotificationCenter defaultCenter] postNotificationName:kDPMusicNotificationPlayStateChanged object:nil userInfo:@{kDPMusicNotificationPlayStateKey:kDPMusicNotificationPlayStatePause}];
 	}
 }
 
@@ -1003,8 +969,7 @@ static char *FormatError(char *str, OSStatus error)
 	[iTunesOperationQueue cancelAllOperations];
 	iTunesOperationQueue = nil;
 	
-	audioStructs[mainBus].playingiPod = NO;
-	audioStructs[mainBus].bufferIsReady = NO;
+	[self feedPlayer:NO];
 	
 	TPCircularBufferCleanup(&audioStructs[mainBus].circularBuffer);
 	
@@ -1095,6 +1060,13 @@ static char *FormatError(char *str, OSStatus error)
 	return gain;
 }
 
+- (void)feedPlayer:(BOOL)feed
+{
+    audioStructs[mainBus].bufferIsReady = feed;
+	audioStructs[mainBus].playingiPod = feed;
+
+}
+
 #pragma mark - seeking
 
 static BOOL wasPlayingBeforeSeek = NO;
@@ -1105,8 +1077,7 @@ static BOOL wasPlayingBeforeSeek = NO;
 
 	scrubStartTime = self.trackPosition;
 
-	audioStructs[mainBus].bufferIsReady = NO;
-	audioStructs[mainBus].playingiPod = NO;
+	[self feedPlayer:NO];
 
 }
 
@@ -1114,10 +1085,15 @@ static BOOL wasPlayingBeforeSeek = NO;
 {
 	_seeking = NO;
     
-    audioStructs[mainBus].bufferIsReady = YES;
-	audioStructs[mainBus].playingiPod = YES;
+    [self feedPlayer:YES];
 }
 
+- (void)setTrackPosition:(NSTimeInterval)trackPosition
+{
+    [self willChangeValueForKey:@"trackPosition"];
+	_trackPosition = trackPosition;
+    [self didChangeValueForKey:@"trackPosition"];
+}
 
 -(void)setCurrentTime:(NSTimeInterval)time
 {
@@ -1126,12 +1102,10 @@ static BOOL wasPlayingBeforeSeek = NO;
 -(void)seekToTime:(NSTimeInterval)time
 {
 	audioStructs[mainBus].currentSampleNum = time * SInt16StereoStreamFormat.mSampleRate;
-    [self willChangeValueForKey:@"trackPosition"];
-	_trackPosition = time;
-    [self didChangeValueForKey:@"trackPosition"];
+    [self setTrackPosition:time];
+	[self.delegate musicPlayer:self didOutputAudioOfDuration:_trackPosition];
 	
-	audioStructs[mainBus].playingiPod = NO;
-	audioStructs[mainBus].bufferIsReady = NO;
+	[self feedPlayer:NO];
 	
 	if (!_seeking)
 		[self loadBufferAtStartTime:time reset:NO];
@@ -1144,7 +1118,7 @@ static BOOL wasPlayingBeforeSeek = NO;
 	[iTunesOperationQueue cancelAllOperations];
 	[self cleanUpBufferForBus:0];
 	
-	_trackPosition = time;
+	[self setTrackPosition:time];
 	framesSinceLastTimeUpdate = 0;
 	audioStructs[mainBus].currentSampleNum = time * SInt16StereoStreamFormat.mSampleRate;
 	

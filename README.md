@@ -12,7 +12,7 @@ DPMusicController is basically an all-in-one tool for browsing your music librar
 
 Important note
 ------------
-This is still a work in process. I put it on GitHub so I have a central place to store it -- but right now, some functions may not be finished, some notifications may not be sent out, etc.
+This is still a work in progress. I put it on GitHub so I have a central place to store it -- but right now, some functions may not be finished, some notifications may not be sent out, etc.
 
 Please feel free to install it and play with it, but be aware it's incomplete and probably buggy.
 
@@ -23,6 +23,33 @@ Features
 * Core Audio-based player (DPMusicPlayer)
 * Crossfade, EQ
 * Central controller (DPMusicController class) for managing all of the individual functions
+
+Usage
+-------
+### Install
+To install, drop the DPMusicController into your project and import "DPMusicController.h" wherever you plan to access the controller. You'll also need to link the MediaPlayer, CoreMedia,  AudioToolbox, and AVFoundation frameworks.
+
+### Basic use
+Access DPMusicController via [DPMusicController sharedController]. The first time you call this, the built-in library manager will import the device's songs, artists, and albums, and send out a notification (see DPMusicConstants.h) when the library has been loaded.
+
+### Accessing library items
+The DPMusicController instance has properties for songs, artists, and albums, as well as their indexed counter-parts (i.e., for UITableView indexing). These properties are arrays of DPMusicItemSong, DPMusicItemArtist, and DPMusicItemAlbum instances, respectively, and the indexed arrays contain DPMusicItemIndexSections with the appropriate DPMusicItem instances in their 'items' properties.
+
+### Creating and modifying the playlist
+Pass a DPMusicItemSong instance to -addSong:error:, -insertSong:atIndex:indexType:error:, and -removeSong:error: to manipulate the playlist. Similarly, you can pass a DPMusicItemCollection subclass (such as DPMusicItemArtist or DPMusicItemAlbum) to -addSongCollection:error: and similar methods to insert and arrange groups of songs into the playlist.
+
+### Understanding the Playhead and playlist indexes
+The playhead is the index of the now-playing song in the playlist array.
+
+There are two ways to express indexes related to the playlist:
+
+#### DPMusicControllerIndexTypePlaylistIndex
+This is the literal index of the song in the playlist array.
+
+#### DPMusicIndexTypeIndexRelativeToPlayhead
+This is the index of the song relative to the playhead. So if the playhead is 4, a DPMusicIndexTypeIndexRelativeToPlayhead index of 2 would represent the literal index of 6 (4+2) in the playlist array.
+
+(more coming soon)
 
 Classes
 --------
