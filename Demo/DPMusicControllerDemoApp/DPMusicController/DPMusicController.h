@@ -63,24 +63,24 @@ typedef NS_ENUM(NSUInteger, DPMusicIndexType) {
 - (void)nextWithCrossfade:(BOOL)crossfade error:(NSError**)error;
 - (void)previousWithCrossfade:(BOOL)crossfade error:(NSError**)error;
 
-@property (nonatomic, readonly, strong) NSArray *playlist; // the current queue / playlist, an array of DPMusicItems
-- (void)setPlaylist:(NSArray *)playlist withPlayheadAtIndex:(NSInteger)index play:(BOOL)play error:(NSError**)error;
+@property (nonatomic, readonly, strong) NSArray *queue; // the current queue / playlist, an array of DPMusicItems; KVO compliant
+- (void)setQueue:(NSArray *)playlist withPlayheadAtIndex:(NSInteger)index play:(BOOL)play error:(NSError**)error;
 
 // the playhead represents the index of the currently-playing song in the playlist array
-@property (nonatomic, readonly) NSInteger playhead;
+@property (nonatomic, readonly) NSInteger playhead; // KVO compliant
 - (void)setPlayhead:(NSInteger)playhead play:(BOOL)play error:(NSError**)error;
 
 - (BOOL)addSong:(DPMusicItemSong*)song error:(NSError**)error; // adds to end of the playlist; returns NO if song already exists in playlist
 - (BOOL)insertSong:(DPMusicItemSong*)song atIndex:(NSInteger)index indexType:(DPMusicIndexType)type error:(NSError**)error; // returns NO if index is beyond playlist bounds or if trying to insert song at playhead (use setCurrentSong:play: instead)
 - (BOOL)removeSong:(DPMusicItemSong*)song error:(NSError**)error; // returns NO if song isn't in playlist of it song is currentSong
 
-- (BOOL)addSongCollection:(DPMusicItemCollection*)collection error:(NSError**)error;
-- (BOOL)insertSongCollection:(DPMusicItemCollection*)collection atIndex:(NSInteger)index indexType:(DPMusicIndexType)type error:(NSError**)error;
+- (BOOL)addSongCollection:(DPMusicItemCollection*)collection shuffle:(BOOL)shuffle error:(NSError**)error;
+- (BOOL)insertSongCollection:(DPMusicItemCollection*)collection atIndex:(NSInteger)index indexType:(DPMusicIndexType)type shuffle:(BOOL)shuffle error:(NSError *__autoreleasing *)error;
 
 - (NSInteger)indexOfSong:(DPMusicItemSong*)song indexType:(DPMusicIndexType)type error:(NSError**)error;
 
-- (void)shufflePlaylist:(BOOL)unplayedSongsOnly error:(NSError**)error;
-- (void)clearPlaylist:(NSError**)error;
+- (void)shuffleQueue:(BOOL)unplayedSongsOnly error:(NSError**)error;
+- (void)clearQueue:(NSError**)error;
 
 //*****
 //
@@ -93,7 +93,7 @@ typedef NS_ENUM(NSUInteger, DPMusicIndexType) {
 @property (nonatomic) NSInteger eqPreset;
 @property (nonatomic) Float64 volume;
 
-@property (nonatomic, readonly) NSTimeInterval trackPosition;
+@property (nonatomic, readonly) NSTimeInterval trackPosition; // KVO compliant
 
 - (NSString*)elapsedTimeString;		// i.e. 02:47
 - (NSString*)remainingTimeString;	// i.e. -01:15

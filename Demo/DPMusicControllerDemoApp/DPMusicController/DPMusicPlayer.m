@@ -179,8 +179,8 @@ static OSStatus ipodRenderCallback (
 {
 	if (self.song)
 	{
-		audioStructs[mainBus].playingiPod = YES;
-		
+
+		[self feedPlayer:YES];
 		[self startAUGraph];
 
 		return YES;
@@ -188,6 +188,14 @@ static OSStatus ipodRenderCallback (
 	else
 		return NO;
 }
+
+- (void)feedPlayer:(BOOL)feed
+{
+	AudioStruct *audio = &audioStructs[mainBus];
+	audio->playingiPod = feed;
+	audio->bufferIsReady = feed;
+}
+
 -(void)pause
 {
 	[self stopAUGraph];
@@ -989,7 +997,6 @@ static char *FormatError(char *str, OSStatus error)
 
 -(void)teardownCoreAudio {
 	
-	[self removeObserver:self forKeyPath:@"spPlayback.isPlaying"];
     if (processingGraph == NULL)
         return;
 
@@ -1010,11 +1017,6 @@ static char *FormatError(char *str, OSStatus error)
 	self.ioUnit = NULL;
 	self.mixerUnit = NULL;
 	self.eqUnit = NULL;
-	
-	for (id note in notes)
-	{
-		[[NSNotificationCenter defaultCenter] removeObserver:note];
-	}
 }
 
 #pragma mark -
@@ -1127,7 +1129,6 @@ static BOOL wasPlayingBeforeSeek = NO;
     [self willChangeValueForKey:@"trackPosition"];
 	_trackPosition = time;
     [self didChangeValueForKey:@"trackPosition"];
-	[self.delegate musicPlayer:self didOutputAudioOfDuration:_trackPosition];
 	
 	audioStructs[mainBus].playingiPod = NO;
 	audioStructs[mainBus].bufferIsReady = NO;

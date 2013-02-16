@@ -96,10 +96,10 @@
 		
 	} else if (sender == self.backbutton) {
 		
-		[[DPMusicController sharedController] nextWithCrossfade:YES error:nil];
+		[[DPMusicController sharedController] previousWithCrossfade:YES error:nil];
 		
 	} else if (sender == self.nextButton) {
-		[[DPMusicController sharedController] previousWithCrossfade:YES error:nil];
+		[[DPMusicController sharedController] nextWithCrossfade:YES error:nil];
 		
 	}
 }
